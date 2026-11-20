@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
+import { getPublicConfig, useQuery } from "wasp/client/operations";
 import { logout, useAuth } from "wasp/client/auth";
 import { brand } from "./brand";
 import { useI18n, type Key, type Locale } from "./i18n";
@@ -56,6 +57,8 @@ export function PreferencesControls() {
 
 export function PublicHeader() {
   const { t, locale } = useI18n();
+  const config = useQuery(getPublicConfig);
+  const registrationOpen = config.data?.registrationEnabled === true;
   const [open, setOpen] = useState(false);
   return (
     <header className="public-header">
@@ -72,8 +75,11 @@ export function PublicHeader() {
         <Link className="login-link" to="/login">
           {t("login")}
         </Link>
-        <Link className="btn primary small" to="/signup">
-          {t("signup")}
+        <Link
+          className="btn primary small"
+          to={registrationOpen ? "/signup" : "/demo"}
+        >
+          {t(registrationOpen ? "signup" : "demo")}
           <ArrowUpRight size={16} />
         </Link>
         <button

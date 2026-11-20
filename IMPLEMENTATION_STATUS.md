@@ -37,3 +37,9 @@ Real accounts, documents and attachments remain on existing volumes. Production 
 - A follow-up idempotency fix ensures replaying an existing AI request never submits a second PgBoss message. The isolated fixture E2E was rerun after the change and still made exactly two calls for two distinct tasks, including one anchored revision.
 
 Full requested Phase 0–6 acceptance, OCR, school templates, monetary credits/payments and complete export fidelity remain unfinished. This source revision still requires public GitHub CI after pushing; the earlier clean-checkout CI result applies to the previous commit.
+
+## Landing experience refinement — 2026-11-20
+
+Expanded the publicly visible prepared-examples thesis walkthrough into a three-pane studio with a persistent chapter tree, saved-in-tab per-chapter example drafts, comment revision diff and L0 evidence inspector. Added a seven-chapter KPM slide reference with explicit unverified provenance; this is not an official university template or fully integrated project blueprint option. Replaced disabled-signup hero/header links with the public demo unless registration is enabled. TypeScript, 20 unit tests, four-step demo E2E, and trilingual 390/768/1440 layout/interaction checks passed locally. AI execution and billing remain disabled in production.
+
+The updated public Web-only container was deployed using the existing Compose project and volumes; API and database were not recreated. Public /en, /cs, /zh, /demo and /api/health returned 200; the public four-step browser interaction suite passed again after deployment, and the new Web health check became healthy. The Mac still has only about 2.1 GiB free, so avoid unnecessary Docker rebuilds and large artifacts.

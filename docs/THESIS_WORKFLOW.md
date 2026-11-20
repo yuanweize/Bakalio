@@ -50,3 +50,12 @@ Claims are explicitly selected by the user. Exact passage checks record page, qu
 Comment-driven AI revision uses the existing queue and consent gate. Results return only the replacement text, remain suggestions, and require explicit acceptance. Acceptance checks both document and comment versions, preserves rich-text marks and unrelated paragraphs for a unique single-text-node quote, stores the previous document revision and appends an audit event. Complex anchors require manual editing. No additional paid calls were made to validate this increment; pure replacement tests and persistent comment/evidence E2Es were run.
 
 Four generic template structures now have a public degree/research-type/writing-language explorer. They are not official university formats. The public four-step demo uses prepared output and says so beside the controls.
+
+
+## Product-led demo and KPM reference — 2026-11-20
+
+The public hero now centers a wider, three-pane interactive teaching workspace. It has a persistent chapter outline, separate per-chapter in-tab drafts, a proposal view, a chapter-card blueprint, an editor with explicit comment-to-diff acceptance and an L0 evidence inspector. The original four-step button labels and workflow remain compatible with the browser smoke test. The examples remain precomputed, without model calls or false evidence verification. Public signup is disabled by default; the hero and header now offer the working demo instead of a dead-end registration route. An enabled registration configuration still reveals the signup CTA.
+
+The template explorer now includes kpm-slide, a seven-chapter reference transcribed from the user's photograph of a Czech KPM lecture slide. The visible citation caveat says the original school policy and current validity have **not** been independently verified; it must never be advertised as an official university template. Discussion is optional, and the conclusion dependency bypasses it. This is an illustrative outline; it does not alter existing thesis projects or launch templates into the persistent workflow.
+
+Validation for this increment: TypeScript, 20 Vitest tests (including the seven-chapter reference invariants), four-step browser demo, browser interaction matrix in app/e2e/landing-workspace.mjs for 390/768/1440px and cs/en/zh, section-draft retention and KPM source warning. Tested using a local static Vite build, not yet a public AI-generated workflow.

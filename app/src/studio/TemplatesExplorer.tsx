@@ -14,6 +14,8 @@ export function TemplatesExplorer() {
           kind: "Typ výzkumu",
           language: "Jazyk práce",
           note: "Obecné šablony. Nejde o oficiální požadavky konkrétní školy.",
+          slide:
+            "Tato sedmidílná osnova je přepsána z fotografie výukového snímku KPM zaslaného uživatelem. Původní předpis a jeho platnost nebyly nezávisle ověřeny.",
         }
       : locale === "zh"
         ? {
@@ -22,6 +24,8 @@ export function TemplatesExplorer() {
             kind: "研究形式",
             language: "论文语言",
             note: "通用模板，未经任何学校官方认证。",
+            slide:
+              "本七章节结构仅依据用户提供的 KPM 教学幻灯片照片整理，尚未通过学校原始规定独立核验，不应视为官方模板。",
           }
         : {
             title: "Find a structure for your thesis",
@@ -29,6 +33,8 @@ export function TemplatesExplorer() {
             kind: "Research type",
             language: "Thesis language",
             note: "Generic templates. Not official requirements for any university.",
+            slide:
+              "This seven-chapter outline was transcribed from a user-provided KPM teaching-slide photo. The original policy and its current validity have not been independently verified.",
           };
   const names =
     locale === "cs"
@@ -37,9 +43,16 @@ export function TemplatesExplorer() {
           "Přehled literatury",
           "Experiment / inženýrství",
           "Software / design science",
+          "KPM: osnova ze snímku (neověřeno)",
         ]
       : locale === "zh"
-        ? ["实证研究", "文献综述", "实验与工程", "软件与设计科学"]
+        ? [
+            "实证研究",
+            "文献综述",
+            "实验与工程",
+            "软件与设计科学",
+            "KPM 七章示例（未核验）",
+          ]
         : templates.map((t) => t.kind);
   return (
     <section className="templates-explorer" id="templates">
@@ -47,13 +60,22 @@ export function TemplatesExplorer() {
         <span className="small-label">Bakalio / Templates</span>
         <h2>{c.title}</h2>
         <p>{c.note}</p>
+        {kind === "kpm-slide" && (
+          <p className="template-provenance" role="note">
+            {c.slide}
+          </p>
+        )}
         <div className="template-filters">
           <label>
             {c.degree}
             <select
               aria-label={c.degree}
               value={degree}
-              onChange={(e) => setDegree(e.target.value)}
+              onChange={(e) => {
+                setDegree(e.target.value);
+                if (e.target.value === "PhD" && kind === "kpm-slide")
+                  setKind("empirical");
+              }}
             >
               {["Bachelor", "Master", "PhD"].map((d) => (
                 <option key={d}>{d}</option>
@@ -68,7 +90,11 @@ export function TemplatesExplorer() {
               onChange={(e) => setKind(e.target.value)}
             >
               {templates.map((t, i) => (
-                <option key={t.id} value={t.id}>
+                <option
+                  key={t.id}
+                  value={t.id}
+                  disabled={!t.degrees.some((d) => d === degree)}
+                >
                   {names[i]}
                 </option>
               ))}

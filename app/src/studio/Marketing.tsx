@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
-import { contact } from "wasp/client/operations";
+import { contact, getPublicConfig, useQuery } from "wasp/client/operations";
 import { Footer, PublicHeader, SEO } from "./Chrome";
 import { ProductJourney } from "./ProductJourney";
 import { TemplatesExplorer } from "./TemplatesExplorer";
@@ -186,6 +186,8 @@ export function StudentScenarios() {
 
 export function Landing() {
   const { t, locale } = useI18n();
+  const config = useQuery(getPublicConfig);
+  const registrationOpen = config.data?.registrationEnabled === true;
   const example = demoFor(locale);
   return (
     <>
@@ -201,16 +203,31 @@ export function Landing() {
             <h1>{t("hero")}</h1>
             <p>{t("heroText")}</p>
             <div className="hero-actions">
-              <Link className="btn primary" to="/signup">
-                {t("signup")}
+              <Link
+                className="btn primary"
+                to={registrationOpen ? "/signup" : "/demo"}
+              >
+                {t(registrationOpen ? "signup" : "demo")}
                 <ArrowUpRight size={18} />
               </Link>
-              <Link className="btn secondary" to="/demo">
-                {t("demo")}
+              <a className="btn secondary" href="#templates">
+                {locale === "cs"
+                  ? "Prohlédnout osnovy"
+                  : locale === "zh"
+                    ? "浏览论文模板"
+                    : "Browse thesis templates"}
                 <ChevronRight size={18} />
-              </Link>
+              </a>
             </div>
-            <p className="fine-print">{t("noCard")}</p>
+            <p className="fine-print">
+              {registrationOpen
+                ? t("noCard")
+                : locale === "cs"
+                  ? "Ukázku můžeš vyzkoušet bez registrace."
+                  : locale === "zh"
+                    ? "无需注册，即可体验完整交互演示。"
+                    : "Try the interactive demo without registering."}
+            </p>
           </div>
           <div className="hero-product-composition">
             <div className="margin-note">{t("stageNote")}</div>

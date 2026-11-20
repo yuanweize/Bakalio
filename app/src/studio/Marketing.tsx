@@ -205,7 +205,7 @@ export function Landing() {
             <div className="hero-actions">
               <Link
                 className="btn primary"
-                to={registrationOpen ? "/signup" : "/demo"}
+                to={registrationOpen ? "/signup" : "/demo?view=studio"}
               >
                 {t(registrationOpen ? "signup" : "demo")}
                 <ArrowUpRight size={18} />

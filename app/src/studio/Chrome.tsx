@@ -77,7 +77,7 @@ export function PublicHeader() {
         </Link>
         <Link
           className="btn primary small"
-          to={registrationOpen ? "/signup" : "/demo"}
+          to={registrationOpen ? "/signup" : "/demo?view=studio"}
         >
           {t(registrationOpen ? "signup" : "demo")}
           <ArrowUpRight size={16} />

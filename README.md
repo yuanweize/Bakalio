@@ -36,7 +36,7 @@ Setup downloads the checksum-verified Wasp 0.26.1 binary, installs dependencies,
 
 ## Configuration
 
-Use [.env.example](.env.example) for Compose and [app/.env.example](app/.env.example) for development. Keep actual files untracked. Registration is closed by default in production until outbound SMTP and operator details are ready. Adding an AI key does **not** enable calls: `AI_ENABLED`, endpoint/model and a positive token budget are independently required. See [AI execution](docs/THESIS_WORKFLOW.md).
+Use [.env.example](.env.example) for Compose and [app/.env.example](app/.env.example) for development. Keep actual files untracked. Registration is closed by default in production until outbound SMTP and operator details are ready. Adding an AI key does **not** enable calls: `AI_ENABLED`, endpoint/model, a provider name disclosed beside consent, and a positive token budget are independently required. See [AI execution](docs/THESIS_WORKFLOW.md).
 
 ## Self-hosting
 

@@ -12,11 +12,13 @@ Current gaps: nested chapters, drag-and-drop, merge/split, file-to-proposal OCR/
 
 ## AI execution
 
-The compatible provider accepts JSON output and reports usage. Enabling it requires a server-only key, explicit `AI_ENABLED=true`, endpoint/model and positive daily token budget. Default budget is zero. An exact `AI_ALLOWED_HTTP_ORIGIN` can permit a specifically approved local HTTP endpoint; public endpoints require HTTPS. Redirects are rejected.
+The compatible provider accepts JSON output and reports usage. Enabling it requires a server-only key, explicit `AI_ENABLED=true`, endpoint/model, a human-readable `AI_PROVIDER_NAME` shown beside consent, and positive daily token budget. Default budget is zero. The endpoint hostname is never exposed by the public configuration query. An exact `AI_ALLOWED_HTTP_ORIGIN` can permit a specifically approved local HTTP endpoint; public endpoints require HTTPS. Redirects are rejected.
 
 `AIJob` stores input snapshot, section/document versions, prompt version, provider/model, state, output, usage, reservation and cancellation request. A serializable transaction reserves a conservative UTF-8 input bound plus output limit before PgBoss enqueue. One queued/running task per user. Idempotency is scoped to user and key. Retries do not occur automatically after an ambiguous provider failure; its reservation remains held because it may have been billed upstream.
 
 The worker uses a 60-second timeout and polls cancellation. Refreshing preserves the task/result. Interrupted jobs can be marked for human review after two minutes rather than silently replayed. Queue-submit failure, process-kill recovery and quota races still require full integration acceptance. Token accounting is implemented; monetary pricing, credit products, refunds and merchant billing are not.
+
+The PgBoss queue is shared by all processes connected to the same PostgreSQL database. Local AI integration testing therefore uses a disposable schema-only database with a fresh PgBoss schema and a loopback-only provider fixture (`app/e2e/ai-provider-fixture.mjs`). The fixture E2E (`app/e2e/ai-queue.mjs`) requires `AI_QUEUE_ISOLATED=true`; it covers consent, idempotency, section completion, token accounting, acceptance and anchored comment revision. It must not be run against the production database while production workers are active. This test does not measure model quality or provider billing.
 
 Generation produces a suggestion, never an automatic document overwrite. Acceptance checks the original document version and writes the previous revision transactionally. Rejection and acceptance are recorded. Source files are not included in the current section-generation context. Results sections are blocked until research-data review exists. The model prompt alone is not a guarantee against hallucination.
 
@@ -27,7 +29,7 @@ Generation produces a suggestion, never an automatic document overwrite. Accepta
 - L2: original text located. Not implemented by the metadata checker.
 - L3: semantic claim support assessed. Not implemented.
 - L4: independent model review. Not implemented, and would not guarantee correctness.
-- Human confirmed: separate version-bound review. Not yet implemented.
+- Human confirmed: a separate version-bound user review event; it is not proof that a fact is correct.
 
 `VerificationEvent` is append-only through the application API: source ID/version, actor, method, outcome, level, metadata and timestamp. Source changes increment the version; previous checks display stale. A Crossref 404 means absent from Crossref, not proof that a publication does not exist. Only the DOI is transmitted; metadata is compared locally. No abstract or full text is copied from Crossref.
 
@@ -37,7 +39,7 @@ Generic DOCX includes title, headings, table-of-contents field, body paragraphs/
 
 ## Data migration
 
-Three additive migrations introduce Proposal/Blueprint/ThesisSection, extend AIJob, and add VerificationEvent. Existing project/document/source IDs and named volumes remain unchanged. The pre-migration database archive was readable using pg_restore --list; a new full restore drill has not yet been performed. Rolling the app back can leave the additive tables/columns in place; do not delete volumes or run reset.
+Four additive migrations introduce Proposal/Blueprint/ThesisSection, extend AIJob, add VerificationEvent, and add comments/claims/review events. Existing project/document/source IDs and named volumes remain unchanged. A full database and attachment restore drill passed on 2026-11-20 in an isolated container. Rolling the app back can leave the additive tables/columns in place; do not delete volumes or run reset.
 
 ## Review increment — 2026-11-20
 

@@ -657,10 +657,10 @@ export const getPublicConfig = async () => ({
   registrationEnabled: process.env.REGISTRATION_ENABLED === "true",
   aiEnabled:
     process.env.AI_ENABLED === "true" &&
+    !!process.env.AI_ENDPOINT &&
     !!process.env.AI_API_KEY &&
     !!process.env.AI_MODEL &&
+    !!process.env.AI_PROVIDER_NAME?.trim() &&
     Number(process.env.AI_DAILY_TOKEN_BUDGET) > 0,
-  aiProvider: process.env.AI_ENDPOINT
-    ? new URL(process.env.AI_ENDPOINT).hostname
-    : null,
+  aiProvider: process.env.AI_PROVIDER_NAME?.trim() || null,
 });

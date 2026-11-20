@@ -11,13 +11,15 @@ function configuration() {
     throw new HttpError(503, "AI_DISABLED");
   const endpoint = process.env.AI_ENDPOINT,
     key = process.env.AI_API_KEY,
-    model = process.env.AI_MODEL;
+    model = process.env.AI_MODEL,
+    providerName = process.env.AI_PROVIDER_NAME?.trim();
   const budget = Number(process.env.AI_DAILY_TOKEN_BUDGET || 0);
   const maxOutputTokens = Number(process.env.AI_MAX_OUTPUT_TOKENS || 1500);
   if (
     !endpoint ||
     !key ||
     !model ||
+    !providerName ||
     !Number.isSafeInteger(budget) ||
     budget <= 0 ||
     !Number.isSafeInteger(maxOutputTokens) ||

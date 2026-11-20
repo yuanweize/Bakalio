@@ -1,0 +1,3 @@
+import fs from 'node:fs';import path from 'node:path';
+const root='app/.wasp/out/web-app/build';
+function visit(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,entry.name);if(entry.isDirectory())visit(file);else if(file.endsWith('.html')){let html=fs.readFileSync(file,'utf8');const locale=path.relative(root,file).split(path.sep)[0];html=html.replace(/<html lang="[^"]*"/,`<html lang="${['cs','en','zh'].includes(locale)?locale:'cs'}"`);const titles=[...html.matchAll(/<title>.*?<\/title>/g)];if(titles.length>1)html=html.replace(titles[0][0],'');const descriptions=[...html.matchAll(/<meta name="description"[^>]*>/g)];if(descriptions.length>1)html=html.replace(descriptions[0][0],'');fs.writeFileSync(file,html);}}}visit(root);

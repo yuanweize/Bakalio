@@ -1,0 +1,13 @@
+import {chromium} from '@playwright/test';
+import {mkdir} from 'node:fs/promises';
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://localhost:4310/en',{waitUntil:'networkidle'});
+await page.screenshot({path:'../artifacts/landing-round1.png',fullPage:true});
+console.log((await page.locator('body').innerText()).slice(0,700));
+console.log('errors',errors);
+await page.goto('http://localhost:4310/demo',{waitUntil:'networkidle'});
+await page.screenshot({path:'../artifacts/editor-round1.png',fullPage:true});
+console.log('demo', (await page.locator('body').innerText()).slice(0,300),'errors',errors);
+await browser.close();

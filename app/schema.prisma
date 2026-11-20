@@ -1,0 +1,278 @@
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+generator client {
+  provider = "prisma-client-js"
+}
+model User {
+  id String @id @default(uuid())
+  email String? @unique
+  createdAt DateTime @default(now())
+  locale String @default("cs")
+  theme String @default("light")
+  members ProjectMember[]
+  sources Source[]
+  jobs AIJob[]
+  usage UsageEvent[]
+}
+model Project {
+  id String @id @default(uuid())
+  title String
+  language String @default("cs")
+  thesisType String @default("Bachelor")
+  discipline String @default("")
+  question String @default("")
+  method String @default("")
+  citationStyle String @default("APA 7")
+  targetDate String @default("")
+  archived Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members ProjectMember[]
+  documents Document[]
+  sources Source[]
+  proposal Proposal?
+  blueprints Blueprint[]
+  sections ThesisSection[]
+}
+model ProjectMember {
+  id String @id @default(uuid())
+  projectId String
+  userId String
+  role String @default("owner")
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@unique([projectId,userId])
+}
+model Document {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  title String
+  content Json
+  version Int @default(1)
+  updatedAt DateTime @updatedAt
+  revisions DocumentRevision[]
+  sources DocumentSource[]
+  citations Citation[]
+  section ThesisSection?
+  comments Comment[]
+  claims Claim[]
+}
+model DocumentRevision {
+  id String @id @default(uuid())
+  documentId String
+  document Document @relation(fields:[documentId],references:[id],onDelete:Cascade)
+  version Int
+  title String
+  content Json
+  createdAt DateTime @default(now())
+  @@unique([documentId,version])
+}
+model Source {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  projectId String?
+  project Project? @relation(fields:[projectId],references:[id],onDelete:SetNull)
+  title String
+  authors String @default("")
+  year String @default("")
+  doi String @default("")
+  url String @default("")
+  tags String[]
+  storageKey String? @unique
+  mime String?
+  bytes Int @default(0)
+  status String @default("manual")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  verificationEvents VerificationEvent[]
+  chunks SourceChunk[]
+  documents DocumentSource[]
+  citations Citation[]
+}
+model SourceChunk {
+  id String @id @default(uuid())
+  sourceId String
+  source Source @relation(fields:[sourceId],references:[id],onDelete:Cascade)
+  page Int
+  text String
+  version Int @default(1)
+  embeddingModel String?
+  embeddingVersion String?
+  evidence EvidenceLink[]
+}
+model DocumentSource {
+  id String @id @default(uuid())
+  documentId String
+  sourceId String
+  document Document @relation(fields:[documentId],references:[id],onDelete:Cascade)
+  source Source @relation(fields:[sourceId],references:[id],onDelete:Cascade)
+  @@unique([documentId,sourceId])
+}
+model Citation {
+  id String @id @default(uuid())
+  documentId String
+  sourceId String
+  page Int?
+  document Document @relation(fields:[documentId],references:[id],onDelete:Cascade)
+  source Source @relation(fields:[sourceId],references:[id],onDelete:Restrict)
+  evidence EvidenceLink[]
+}
+model EvidenceLink {
+  id String @id @default(uuid())
+  citationId String
+  chunkId String
+  quote String
+  verified Boolean @default(false)
+  citation Citation @relation(fields:[citationId],references:[id],onDelete:Cascade)
+  chunk SourceChunk @relation(fields:[chunkId],references:[id],onDelete:Cascade)
+}
+model AIJob {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  key String
+  type String
+  status String @default("disabled")
+  promptVersion String @default("research-v1")
+  sectionId String?
+  input Json?
+  output Json?
+  provider String?
+  model String?
+  error String?
+  reservedTokens Int @default(0)
+  inputTokens Int @default(0)
+  outputTokens Int @default(0)
+  startedAt DateTime?
+  completedAt DateTime?
+  cancelRequested Boolean @default(false)
+  createdAt DateTime @default(now())
+  @@unique([userId,key])
+}
+model UsageEvent {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  kind String
+  units Int
+  createdAt DateTime @default(now())
+}
+model ContactMessage {
+  id String @id @default(uuid())
+  email String
+  message String
+  createdAt DateTime @default(now())
+}
+
+// Additive workflow models: existing documents and storage remain unchanged.
+model Proposal {
+  id String @id @default(uuid())
+  projectId String @unique
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  text String
+  requirements Json
+  version Int @default(1)
+  confirmedAt DateTime?
+  updatedAt DateTime @updatedAt
+}
+model Blueprint {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version Int
+  proposalVersion Int
+  structure Json
+  method String @default("generic-template-v1")
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([projectId, version])
+}
+model ThesisSection {
+  id String @id @default(uuid())
+  projectId String
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  documentId String @unique
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  blueprintKey String
+  title String
+  kind String
+  position Int
+  requirements String @default("")
+  targetWords Int @default(1000)
+  dependencies String[]
+  status String @default("not_started")
+  version Int @default(1)
+  updatedAt DateTime @updatedAt
+  @@unique([projectId, blueprintKey])
+  @@index([projectId, position])
+}
+
+model VerificationEvent {
+  id String @id @default(uuid())
+  sourceId String
+  source Source @relation(fields:[sourceId],references:[id],onDelete:Cascade)
+  sourceVersion Int
+  actorId String
+  level String
+  outcome String
+  method String
+  details Json
+  createdAt DateTime @default(now())
+  @@index([sourceId, createdAt])
+}
+
+model Comment {
+  id String @id @default(uuid())
+  documentId String
+  document Document @relation(fields:[documentId],references:[id],onDelete:Cascade)
+  authorId String
+  body String
+  quote String @default("")
+  documentVersion Int
+  status String @default("open")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  @@index([documentId, createdAt])
+}
+model Claim {
+  id String @id @default(uuid())
+  documentId String
+  document Document @relation(fields:[documentId],references:[id],onDelete:Cascade)
+  text String
+  version Int @default(1)
+  documentVersion Int
+  assessments ClaimAssessment[]
+  createdAt DateTime @default(now())
+  @@index([documentId])
+}
+model ClaimAssessment {
+  id String @id @default(uuid())
+  claimId String
+  claim Claim @relation(fields:[claimId],references:[id],onDelete:Cascade)
+  claimVersion Int
+  sourceId String
+  sourceVersion Int
+  sourceHash String
+  page Int
+  quote String
+  level String
+  outcome String
+  method String
+  actorId String
+  createdAt DateTime @default(now())
+  @@index([claimId,createdAt])
+}
+model ReviewEvent {
+  id String @id @default(uuid())
+  userId String
+  objectId String
+  objectVersion Int
+  kind String
+  details Json
+  createdAt DateTime @default(now())
+  @@index([userId,objectId,createdAt])
+}

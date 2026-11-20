@@ -1,0 +1,32 @@
+FROM node:24.22.1-bookworm AS source
+RUN apt-get update && apt-get install -y --no-install-recommends libgmp10 libtinfo6 zlib1g openssl && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace
+COPY scripts/install-wasp.sh scripts/wasp scripts/build.sh scripts/finalize-web.mjs ./scripts/
+RUN ./scripts/install-wasp.sh
+COPY app ./app
+ARG PUBLIC_API_URL=http://localhost:4311
+ENV PUBLIC_API_URL=$PUBLIC_API_URL
+RUN ./scripts/build.sh
+FROM nginx:1.28.0-alpine AS web
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=source /workspace/app/.wasp/out/web-app/build /usr/share/nginx/html
+FROM node:24.22.1-bookworm-slim AS api-build
+RUN apt-get update && apt-get install -y --no-install-recommends openssl python3 make g++ && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=source /workspace/app/.wasp/out/src ./src
+COPY --from=source /workspace/app/.wasp/out/package*.json ./
+COPY --from=source /workspace/app/.wasp/out/tsconfig*.json ./
+COPY --from=source /workspace/app/.wasp/out/server .wasp/out/server
+COPY --from=source /workspace/app/.wasp/out/sdk .wasp/out/sdk
+COPY --from=source /workspace/app/.wasp/out/types .wasp/out/types
+COPY --from=source /workspace/app/.wasp/out/libs .wasp/out/libs
+COPY --from=source /workspace/app/.wasp/out/db .wasp/out/db
+RUN npm ci && cd .wasp/out/server && npx prisma generate --schema=../db/schema.prisma && npm run bundle
+FROM node:24.22.1-bookworm-slim AS api
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=api-build /app /app
+ENV NODE_ENV=production PORT=4311
+WORKDIR /app/.wasp/out/server
+EXPOSE 4311
+CMD ["npm","run","start-production"]

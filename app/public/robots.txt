@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /project/
+Disallow: /design-preview
+Sitemap: https://bakalio.eurun.eu.org/sitemap.xml

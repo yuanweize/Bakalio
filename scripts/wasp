@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+RS_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+export waspc_datadir="$RS_ROOT/.tools/data"
+test -x "$RS_ROOT/.tools/wasp-bin" || "$RS_ROOT/scripts/install-wasp.sh"
+cd "$RS_ROOT/app"
+exec "$RS_ROOT/.tools/wasp-bin" "$@"

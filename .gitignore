@@ -1,0 +1,14 @@
+.tools/
+node_modules/
+.wasp/
+.env
+.env.*
+!.env.example
+!**/.env.example
+artifacts/
+backups/
+*.log
+*.tsbuildinfo
+.codebase-memory/
+.data/
+private-storage/

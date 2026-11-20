@@ -1,0 +1,15 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.source
+      target: api
+      args:
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4311}
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.source
+      target: web
+      args:
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4311}

@@ -108,7 +108,7 @@ export async function enqueueSection(a: Record<string, any>, uid: string) {
     Buffer.byteLength(JSON.stringify(input), "utf8") +
     cfg.maxOutputTokens +
     1000;
-  const job = await prisma.$transaction(
+  const submission = await prisma.$transaction(
     async (tx) => {
       const existing = await tx.aIJob.findUnique({
         where: { userId_key: { userId: uid, key } },
@@ -119,7 +119,7 @@ export async function enqueueSection(a: Record<string, any>, uid: string) {
           (existing.input as any)?.revision?.commentId !== comment?.id
         )
           throw new HttpError(409, "IDEMPOTENCY_CONFLICT");
-        return existing;
+        return { job: existing, created: false };
       }
       if (
         await tx.aIJob.count({
@@ -152,7 +152,7 @@ export async function enqueueSection(a: Record<string, any>, uid: string) {
         data: { status: "generating", version: { increment: 1 } },
       });
       if (!changed.count) throw new HttpError(409, "SECTION_NOT_READY");
-      return tx.aIJob.create({
+      const job = await tx.aIJob.create({
         data: {
           userId: uid,
           key,
@@ -166,12 +166,13 @@ export async function enqueueSection(a: Record<string, any>, uid: string) {
           reservedTokens: reserve,
         },
       });
+      return { job, created: true };
     },
     { isolationLevel: "Serializable" },
   );
-  if (job.status === "queued")
-    await executeAIJob.submit({ jobId: job.id }, { retryLimit: 0 });
-  return { id: job.id, status: job.status };
+  if (submission.created)
+    await executeAIJob.submit({ jobId: submission.job.id }, { retryLimit: 0 });
+  return { id: submission.job.id, status: submission.job.status };
 }
 export async function executeAI({ jobId }: { jobId: string }) {
   const job = await prisma.aIJob.findUnique({ where: { id: jobId } });
